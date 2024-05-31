@@ -23,6 +23,8 @@ return require('packer').startup(function(use)
 
     use	"folke/tokyonight.nvim"
 
+    use { "scottmckendry/cyberdream.nvim" }
+
     use "windwp/nvim-ts-autotag"
 
     use "jose-elias-alvarez/null-ls.nvim"

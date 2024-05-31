@@ -1,3 +1,3 @@
 require("rope_runner")
 
-ColorMyEditor()
+ColorMyEditor("cyberdream")
