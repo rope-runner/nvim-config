@@ -6,7 +6,7 @@ require('mason').setup({})
 require('mason-lspconfig').setup({
   -- Replace the language servers listed here
   -- with the ones you want to install
-  ensure_installed = {	'tsserver',
+  ensure_installed = {	'ts_ls',
   'eslint',
   'clangd',
   'emmet_language_server',
@@ -60,13 +60,32 @@ cmp.setup({
 })
 
 lsp.on_attach(function(client, bufnr)
-	local opts = {buffer = bufnr, remap = false}
+	local opts = {buffer = bufnr, remap = false, noremap = true, silent = true,}
 
 	vim.keymap.set("n", "<leader>gd", function() vim.lsp.buf.definition() end, opts)
     vim.keymap.set("n", "<leader>gD", function() vim.lsp.buf.declaration() end, opts)
 	vim.keymap.set("n", "<leader>vrr", function() vim.lsp.buf.references() end, opts)
 	vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
+
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+    vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+    vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
 end)
+
+local on_attach = function(client, bufnr)
+  local opts = { noremap = true, silent = true, buffer = bufnr }
+
+  vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+  vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+  vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+  vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+end
+
+require("lspconfig")["ts_ls"].setup({
+  on_attach = on_attach,
+  capabilities = require("cmp_nvim_lsp").default_capabilities(), -- Optional: for completion capabilities
+})
 
 lsp.setup()
 
