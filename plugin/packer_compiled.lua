@@ -129,6 +129,11 @@ _G.packer_plugins = {
     path = "/Users/dan/.local/share/nvim/site/pack/packer/start/neogit",
     url = "https://github.com/NeogitOrg/neogit"
   },
+  ["nightfox.nvim"] = {
+    loaded = true,
+    path = "/Users/dan/.local/share/nvim/site/pack/packer/start/nightfox.nvim",
+    url = "https://github.com/EdenEast/nightfox.nvim"
+  },
   ["null-ls.nvim"] = {
     loaded = true,
     path = "/Users/dan/.local/share/nvim/site/pack/packer/start/null-ls.nvim",

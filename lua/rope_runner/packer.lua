@@ -45,6 +45,8 @@ return require('packer').startup(function(use)
 
     use 'APZelos/blamer.nvim'
 
+    use "EdenEast/nightfox.nvim"
+
     use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
     use('nvim-treesitter/playground')
     use('theprimeagen/harpoon')
