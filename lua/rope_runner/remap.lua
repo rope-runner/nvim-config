@@ -14,3 +14,7 @@ vim.keymap.set("x", "<leader>p", "\"_dP")
 vim.keymap.set("n", "<leader>f", ":Prettier<CR>")
 vim.keymap.set("v", "<leader>f", ":Prettier<CR>")
 vim.keymap.set('n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', { noremap = true, silent = true })
+
+vim.keymap.set("n", "<leader>nh", ":nohlsearch<CR>", { desc = "Disable highlighted search" })
+
+vim.keymap.set("n", "<leader>fd", ":NvimTreeFindFile<CR>", { noremap = true, silent = true })
