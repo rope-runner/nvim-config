@@ -1,4 +1,5 @@
 local null_ls = require("null-ls")
+local formatting = null_ls.builtins.formatting
 
 local group = vim.api.nvim_create_augroup("lsp_format_on_save", { clear = false })
 local event = "BufWritePre" -- or "BufWritePost"
@@ -9,6 +10,10 @@ null_ls.setup({
         null_ls.builtins.formatting.gofumpt,
         null_ls.builtins.formatting.goimports_reviser,
         null_ls.builtins.formatting.golines,
+        formatting.prettier.with({
+            filetypes = { "typescript", "typescriptreact", "javascript", "html", "css", "json", "yaml", "markdown" },
+        }),
+        formatting.eslint_d
     },
     on_attach = function(client, bufnr)
         if client.supports_method("textDocument/formatting") then

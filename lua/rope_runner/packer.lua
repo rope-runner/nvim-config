@@ -23,6 +23,8 @@ return require('packer').startup(function(use)
 
     use	"folke/tokyonight.nvim"
 
+    use { "scottmckendry/cyberdream.nvim" }
+
     use "windwp/nvim-ts-autotag"
 
     use "jose-elias-alvarez/null-ls.nvim"
@@ -40,6 +42,10 @@ return require('packer').startup(function(use)
             { 'sindrets/diffview.nvim' },
         }
     }
+
+    use 'APZelos/blamer.nvim'
+
+    use "EdenEast/nightfox.nvim"
 
     use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
     use('nvim-treesitter/playground')
@@ -59,4 +65,13 @@ return require('packer').startup(function(use)
             {'L3MON4D3/LuaSnip'},
         }
     }
+
+    use 'akinsho/git-conflict.nvim'
+
+    --use {
+    --    'nvim-tree/nvim-tree.lua',
+    --    requires = {
+    --        'nvim-tree/nvim-web-devicons',
+    --    },
+    --}
 end)

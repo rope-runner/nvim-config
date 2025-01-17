@@ -1,0 +1,35 @@
+--local function auto_import_ts_symbol()
+--    local params = vim.lsp.util.make_range_params()
+--    params.context = { diagnostics = {}, only = { "quickfix" } } -- Use "quickfix" for import actions
+--
+--    -- Request code actions synchronously
+--    local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, 1000)
+--    if not result or vim.tbl_isempty(result) then
+--        print("No import actions available for the symbol under the cursor.")
+--        return
+--    end
+--
+--    for _, res in pairs(result) do
+--        for _, action in pairs(res.result or {}) do
+--            if action.title:lower():match("import") then
+--                -- Apply workspace edit if available
+--                if action.edit then
+--                    vim.lsp.util.apply_workspace_edit(action.edit, "utf-16")
+--                end
+--
+--                -- Execute any associated command
+--                if action.command then
+--                    vim.lsp.buf.execute_command(action.command)
+--                end
+--
+--                print("Successfully imported the symbol.")
+--                return
+--            end
+--        end
+--    end
+--
+--    print("No suitable import action found for the symbol.")
+--end
+--
+--vim.api.nvim_create_user_command("AutoImport", auto_import_ts_symbol, {})
+--
