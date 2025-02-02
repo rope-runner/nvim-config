@@ -20,3 +20,7 @@ vim.keymap.set("n", "<leader>nh", ":nohlsearch<CR>", { desc = "Disable highlight
 vim.keymap.set("n", "<leader>fd", ":NvimTreeFindFile<CR>", { noremap = true, silent = true })
 
 vim.keymap.set("n", "<leader>ti", ":AutoImport<CR>", { noremap = true, silent = true })
+
+vim.keymap.set("n", "<leader>e", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
+vim.keymap.set("n", "<leader>q", vim.diagnostic.setqflist, { desc = "Show diagnostics in quickfix" })
+vim.keymap.set("n", "<leader>l", vim.diagnostic.setloclist, { desc = "Show diagnostics in location list" })

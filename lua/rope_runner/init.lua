@@ -22,3 +22,11 @@ vim.opt.termguicolors = true
 --    dotfiles = false,
 --  },
 --})
+--
+
+vim.diagnostic.config({
+  virtual_text = true,
+  signs = true,
+  update_in_insert = false,
+  severity_sort = true,
+})
