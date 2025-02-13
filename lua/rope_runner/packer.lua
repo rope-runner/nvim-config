@@ -8,8 +8,18 @@ return require('packer').startup(function(use)
     use 'wbthomason/packer.nvim'
 
     use {
-        'nvim-telescope/telescope.nvim', tag = '0.1.6',
-        requires = { {'nvim-lua/plenary.nvim'} }
+        'nvim-telescope/telescope.nvim', 
+        requires = { {'nvim-lua/plenary.nvim'} },
+        config = function ()
+            require("telescope").setup({
+                extensions = {
+                    projects = {
+                        base_dirs = { "~/job", "~/learn", "~/projects" },
+                        hidden_files = true
+                    }
+                }
+            })
+        end
     }
 
     use({
@@ -78,10 +88,35 @@ return require('packer').startup(function(use)
         end
     }
 
+    use   {
+        "goolord/alpha-nvim",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
+    }
+
+    use   {
+        "ahmedkhalf/project.nvim",
+        config = function()
+            require("project_nvim").setup {
+                manual_mode = false,  -- Set to true if you want to manually add projects
+                detection_methods = { "pattern" }, -- Detect based on patterns (not just .git)
+                patterns = { ".git", "Makefile", "package.json" }, -- What counts as a project
+                ignore_lsp = {}, -- Don't exclude any LSP projects
+                show_hidden = true, -- Show hidden files in project list
+                silent_chdir = false, -- Show messages when switching projects
+                datapath = vim.fn.stdpath("data"), -- Store project history
+            }
+            require("telescope").load_extension("projects")
+        end
+    }
+
+    use {
+        'christoomey/vim-tmux-navigator'
+    }
+
     --use {
-    --    'nvim-tree/nvim-tree.lua',
-    --    requires = {
-    --        'nvim-tree/nvim-web-devicons',
-    --    },
-    --}
-end)
+        --    'nvim-tree/nvim-tree.lua',
+        --    requires = {
+            --        'nvim-tree/nvim-web-devicons',
+            --    },
+            --}
+        end)

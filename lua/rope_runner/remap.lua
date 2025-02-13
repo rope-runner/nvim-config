@@ -17,10 +17,12 @@ vim.keymap.set('n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', { noremap
 
 vim.keymap.set("n", "<leader>nh", ":nohlsearch<CR>", { desc = "Disable highlighted search" })
 
-vim.keymap.set("n", "<leader>fd", ":NvimTreeFindFile<CR>", { noremap = true, silent = true })
-
 vim.keymap.set("n", "<leader>ti", ":AutoImport<CR>", { noremap = true, silent = true })
 
 vim.keymap.set("n", "<leader>e", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setqflist, { desc = "Show diagnostics in quickfix" })
 vim.keymap.set("n", "<leader>l", vim.diagnostic.setloclist, { desc = "Show diagnostics in location list" })
+
+vim.keymap.set("n", "<leader>`", ":Neogit<CR>", { silent = true })
+
+vim.opt.clipboard:append("unnamedplus")
