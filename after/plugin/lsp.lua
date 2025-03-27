@@ -17,6 +17,7 @@ require('mason-lspconfig').setup({
   'lua_ls',
   'autotools_ls',
   'tsserver',
+  'glsl_analyzer'
   },
   handlers = {
     function(server_name)
@@ -112,7 +113,9 @@ local on_attach = function(client, bufnr)
   end, { desc = "Try to import the symbol under the cursor" })
 end
 
-require("lspconfig")["ts_ls"].setup({
+local lspconfig = require('lspconfig')
+
+lspconfig["ts_ls"].setup({
   on_attach = on_attach,
   capabilities = require("cmp_nvim_lsp").default_capabilities(), -- Optional: for completion capabilities
     commands = {
@@ -124,6 +127,8 @@ require("lspconfig")["ts_ls"].setup({
         }
     }
 })
+
+lspconfig.glsl_analyzer.setup({})
 
 lsp.setup()
 
