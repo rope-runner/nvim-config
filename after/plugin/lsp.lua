@@ -17,7 +17,7 @@ require('mason-lspconfig').setup({
   'lua_ls',
   'autotools_ls',
   'tsserver',
-  'glsl_analyzer'
+  'glsl-language-server'
   },
   handlers = {
     function(server_name)
@@ -128,7 +128,7 @@ lspconfig["ts_ls"].setup({
     }
 })
 
-lspconfig.glsl_analyzer.setup({})
+lspconfig.glsl.setup()
 
 lsp.setup()
 

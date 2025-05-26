@@ -36,7 +36,10 @@ return require('packer').startup(function(use)
 
     use "windwp/nvim-ts-autotag"
 
-    use "jose-elias-alvarez/null-ls.nvim"
+    use {
+        "nvimtools/none-ls.nvim",
+        requires = { "nvim-lua/plenary.nvim" },
+    }
 
     use "MunifTanjim/prettier.nvim"
 
@@ -113,10 +116,4 @@ return require('packer').startup(function(use)
         'christoomey/vim-tmux-navigator'
     }
 
-    --use {
-        --    'nvim-tree/nvim-tree.lua',
-        --    requires = {
-            --        'nvim-tree/nvim-web-devicons',
-            --    },
-            --}
         end)
