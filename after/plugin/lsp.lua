@@ -1,131 +1,237 @@
-local lsp = require("lsp-zero")
 
-lsp.preset("recommended")
+-- ~/.config/nvim/after/plugin/lsp.lua
+-- NVIM 0.10.x — lspconfig + Mason binaries + Blink completion
 
-require('mason').setup({})
-require('mason-lspconfig').setup({
-  -- Replace the language servers listed here
-  -- with the ones you want to install
-  ensure_installed = {	'ts_ls',
-  'eslint',
-  'clangd',
-  'emmet_language_server',
-  'gopls',
-  'html',
-  'angularls',
-  'dockerls',
-  'biome',
-  'lua_ls',
-  'autotools_ls',
-  'tsserver',
-  },
-  handlers = {
-    function(server_name)
-      require('lspconfig')[server_name].setup({})
-    end,
-  }
+-------------------------------------------------------
+-- Mason binary resolver
+-------------------------------------------------------
+local MASON = vim.fn.stdpath('data') .. '/mason'
+local BIN   = MASON .. '/bin'
+local function bin(exe) return BIN .. '/' .. exe end
+local function exists(p) return vim.fn.filereadable(p) == 1 end
+
+-------------------------------------------------------
+-- Blink (completion)
+-------------------------------------------------------
+vim.o.completeopt = 'menu,menuone,noselect'
+
+local ok_blink, blink = pcall(require, 'blink.cmp')
+if ok_blink then
+  blink.setup({
+    keymap  = {
+      preset = 'default',
+      ['<CR>'] = { 'accept', 'fallback' }, -- accept selection; newline only if no menu
+    },
+    sources = { default = { 'lsp' } },
+    -- keep Lua fuzzy to avoid native binary requirement
+    fuzzy   = { use_native = false },
+
+    completion = {
+        documentation = {
+            auto_show = true,          -- show docs as you move in the list
+            auto_show_delay_ms = 60,   -- quick
+            window = { border = 'rounded', max_width = 84, max_height = 20 },
+        },
+    },
 })
-
-local cmp = require('cmp')
-
-cmp.setup({
-  sources = {
-    {name = 'nvim_lsp'},
-  },
-  mapping = {
-    ['<CR>'] = cmp.mapping.confirm({select = false}),
-    ['<C-e>'] = cmp.mapping.abort(),
-    ['<Up>'] = cmp.mapping.select_prev_item({behavior = 'select'}),
-    ['<Down>'] = cmp.mapping.select_next_item({behavior = 'select'}),
-    ['<C-p>'] = cmp.mapping(function()
-      if cmp.visible() then
-        cmp.select_prev_item({behavior = 'insert'})
-      else
-        cmp.complete()
-      end
-    end),
-    ['<C-n>'] = cmp.mapping(function()
-      if cmp.visible() then
-        cmp.select_next_item({behavior = 'insert'})
-      else
-        cmp.complete()
-      end
-    end),
-  },
-  snippet = {
-    expand = function(args)
-      require('luasnip').lsp_expand(args.body)
-    end,
-  },
-})
-
-lsp.on_attach(function(client, bufnr)
-	local opts = {buffer = bufnr, remap = false, noremap = true, silent = true,}
-
-	vim.keymap.set("n", "<leader>gd", function() vim.lsp.buf.definition() end, opts)
-    vim.keymap.set("n", "<leader>gD", function() vim.lsp.buf.declaration() end, opts)
-	vim.keymap.set("n", "<leader>vrr", function() vim.lsp.buf.references() end, opts)
-	vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
-
-    vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-    vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-    vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-end)
-
-local on_attach = function(client, bufnr)
-  local opts = { noremap = true, silent = true, buffer = bufnr }
-
-  vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-  vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-  vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-  vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-
-  vim.api.nvim_create_user_command("AutoImport", function()
-      local params = vim.lsp.util.make_range_params()
-      params.context = { diagnostics = {}, only = { "quickfix" } }
-
-      local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, 1000)
-      if not result or vim.tbl_isempty(result) then
-          print("No import actions available for the symbol under the cursor.")
-          return
-      end
-
-      for _, res in pairs(result) do
-          print(result, "first loop")
-          for _, action in pairs(res.result or {}) do
-              print(action.title)
-              if action.title:lower():match("import") then
-                  if action.edit then
-                      vim.lsp.util.apply_workspace_edit(action.edit, "utf-16")
-                  end
-
-                  if action.command then
-                      vim.lsp.buf.execute_command(action.command)
-                  end
-                  print("Successfully imported the symbol.")
-                  return
-              end
-          end
-      end
-
-      print("No suitable import action found for the symbol.")
-  end, { desc = "Try to import the symbol under the cursor" })
 end
 
-require("lspconfig")["ts_ls"].setup({
-  on_attach = on_attach,
-  capabilities = require("cmp_nvim_lsp").default_capabilities(), -- Optional: for completion capabilities
-    commands = {
-        OrganizeImports = {
-            function()
-                vim.lsp.buf.code_action({ only = { "source.organizeImports" } })
-            end,
-            description = "Organize Imports"
-        }
-    }
-})
+-- LSP capabilities (default is fine for Blink)
+local caps = vim.lsp.protocol.make_client_capabilities()
 
-lsp.setup()
+-------------------------------------------------------
+-- lspconfig helpers
+-------------------------------------------------------
+local lspconfig = require('lspconfig')
+local util      = require('lspconfig.util')
 
+-- Pretty signature float (and non-focusable)
+vim.lsp.handlers["textDocument/signatureHelp"] =
+  vim.lsp.with(vim.lsp.handlers.signature_help, {
+    border = "rounded",
+    focusable = false,
+    close_events = { "CursorMoved", "BufHidden", "InsertLeave" },
+    max_width = 84,
+  })
+
+-- Make CursorHoldI responsive
+if vim.o.updatetime > 250 then
+  vim.o.updatetime = 250
+end
+
+-- Debounced signature trigger
+local sig_pending = false
+local function trigger_sig()
+  if sig_pending then return end
+  sig_pending = true
+  vim.defer_fn(function()
+    sig_pending = false
+    pcall(vim.lsp.buf.signature_help)
+  end, 80)
+end
+
+-- Are we inside an argument list? (handles existing "()")
+local function inside_args()
+  local line = vim.api.nvim_get_current_line()
+  local col  = vim.api.nvim_win_get_cursor(0)[2] + 1 -- 1-based
+  local depth = 0
+  for i = col, 1, -1 do
+    local ch = line:sub(i, i)
+    if ch == ')' then
+      depth = depth + 1
+    elseif ch == '(' then
+      if depth == 0 then
+        return true -- nearest unmatched '(' to the left → we're inside args
+      else
+        depth = depth - 1
+      end
+    end
+  end
+  return false
+end
+
+
+local on_attach = function(_, bufnr)
+  local o = { buffer = bufnr, noremap = true, silent = true }
+
+  -- navigation
+  vim.keymap.set("n", "gd", vim.lsp.buf.definition, o)
+  vim.keymap.set("n", "gD", vim.lsp.buf.declaration, o)
+  vim.keymap.set("n", "gr", vim.lsp.buf.references, o)
+  vim.keymap.set("n", "gi", vim.lsp.buf.implementation, o)
+
+  -- docs / signatures
+  vim.keymap.set("n", "K",  vim.lsp.buf.hover, o)               -- hover on symbol
+  vim.keymap.set("i", "<C-h>", function() pcall(vim.lsp.buf.signature_help) end, o)
+
+  -- inlay hints (Neovim 0.10+)
+  -- per-buffer group to avoid dupes on reload
+  local grp = vim.api.nvim_create_augroup("LspSig_" .. bufnr, { clear = true })
+
+  -- Auto-show/refresh signatures while editing or moving inside arguments
+  vim.api.nvim_create_autocmd("InsertCharPre", {
+    group = grp,
+    buffer = bufnr,
+    callback = function(args)
+      if args.char == "(" or args.char == "," then
+        trigger_sig()
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ "TextChangedI", "CursorHoldI", "CursorMovedI" }, {
+    group = grp,
+    buffer = bufnr,
+    callback = function()
+      if inside_args() then
+        trigger_sig()
+      end
+    end,
+  })
+
+  -- Show signature if you enter Insert mode already inside ()
+ vim.api.nvim_create_autocmd("InsertEnter", {
+    group = grp,
+    buffer = bufnr,
+    callback = function()
+      trigger_sig()  -- unconditional
+    end,
+  })
+
+  -- Normal → Insert transitions (no buffer+pattern together)
+  vim.api.nvim_create_autocmd("ModeChanged", {
+    group = grp,
+    pattern = "n:i",
+    callback = function()
+      if vim.api.nvim_get_current_buf() ~= bufnr then return end
+      trigger_sig()  -- unconditional
+    end,
+  })
+end
+
+
+local function setup_if_present(name, cfg)
+  if not lspconfig[name] then return end
+  cfg = vim.tbl_deep_extend('force', { on_attach = on_attach, capabilities = caps }, cfg or {})
+  lspconfig[name].setup(cfg)
+end
+
+-------------------------------------------------------
+-- Servers (install via :Mason if missing)
+-------------------------------------------------------
+
+-- Lua (Neovim config)
+if exists(bin('lua-language-server')) then
+  setup_if_present('lua_ls', {
+    cmd = { bin('lua-language-server') },
+    settings = {
+      Lua = {
+        workspace   = { checkThirdParty = false },
+        diagnostics = { globals = { 'vim' } },
+        hint = { enable = true },
+      },
+    },
+  })
+end
+
+-- TypeScript (ts_ls or tsserver)
+if exists(bin('typescript-language-server')) then
+  if lspconfig.ts_ls then
+    setup_if_present('ts_ls', {
+      cmd = { bin('typescript-language-server'), '--stdio' },
+    })
+  else
+    setup_if_present('tsserver', {
+      cmd = { bin('typescript-language-server'), '--stdio' },
+    })
+  end
+end
+
+-- Angular
+if exists(bin('angular-language-server')) then
+  setup_if_present('angularls', {
+    cmd = { bin('angular-language-server'), '--stdio' },
+    root_dir = util.root_pattern('angular.json', 'project.json', 'package.json', '.git'),
+    single_file_support = false,
+  })
+end
+
+-- Go
+if exists(bin('gopls')) then
+  setup_if_present('gopls', {
+    cmd = { bin('gopls') },
+    settings = {
+      gopls = {
+        analyses = { unusedparams = true, unusedwrite = true },
+        staticcheck = true,
+        usePlaceholders = true,
+        completeUnimported = true,
+      },
+    },
+  })
+end
+
+-- C/C++
+if exists(bin('clangd')) then
+  setup_if_present('clangd', {
+    cmd = { bin('clangd') },
+  })
+end
+
+-- HTML / CSS / ESLint / Docker / Emmet
+if exists(bin('vscode-html-language-server')) then
+  setup_if_present('html',  { cmd = { bin('vscode-html-language-server'),  '--stdio' } })
+end
+if exists(bin('vscode-css-language-server')) then
+  setup_if_present('cssls', { cmd = { bin('vscode-css-language-server'),   '--stdio' } })
+end
+if exists(bin('vscode-eslint-language-server')) then
+  setup_if_present('eslint',{ cmd = { bin('vscode-eslint-language-server'), '--stdio' } })
+end
+if exists(bin('docker-langserver')) then
+  setup_if_present('dockerls', { cmd = { bin('docker-langserver'), '--stdio' } })
+end
+if exists(bin('emmet-language-server')) then
+  setup_if_present('emmet_ls', { cmd = { bin('emmet-language-server'), '--stdio' } })
+end
 

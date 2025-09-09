@@ -1,0 +1,164 @@
+--local M = {}
+--
+--local function get_local_marks(bufnr)
+--  local out = {}
+--  local name = vim.api.nvim_buf_get_name(bufnr)
+--  for byte = string.byte('a'), string.byte('z') do
+--    local mark = string.char(byte)
+--    local pos = vim.api.nvim_buf_get_mark(bufnr, mark)  -- {lnum, col}; lnum == 0 => unset
+--    local lnum, col = pos[1], pos[2]
+--    if lnum > 0 then
+--      local line = (vim.api.nvim_buf_get_lines(bufnr, lnum-1, lnum, false)[1] or "")
+--      table.insert(out, {
+--        kind = "local",
+--        mark = mark,
+--        bufnr = bufnr,
+--        file = name,
+--        lnum = lnum,
+--        col = col,
+--        text = line,
+--      })
+--    end
+--  end
+--  return out
+--end
+--
+--local function safe_readline(file, lnum)
+--  -- small, lazy line fetch for previews
+--  local ok, lines = pcall(vim.fn.readfile, file)
+--  if not ok or not lines or lnum < 1 or lnum > #lines then return "" end
+--  return lines[lnum] or ""
+--end
+--
+--local function get_global_marks()
+--  local out = {}
+--  if vim.fn.exists("*getmarklist") == 0 then
+--    return out  -- very old NVIM; skip globals
+--  end
+--  -- getmarklist() returns marks from ShaDa + current session
+--  local all = vim.fn.getmarklist()
+--  for _, m in ipairs(all) do
+--    local mark = m.mark
+--    if type(mark) == "string" and mark:match("^[A-Z]$") and m.pos then
+--      local lnum = m.pos[1]
+--      local col  = m.pos[2]
+--      local file = m.file or ""
+--      local text = (file ~= "" and safe_readline(file, lnum)) or ""
+--      table.insert(out, {
+--        kind = "global",
+--        mark = mark,
+--        file = file,
+--        lnum = lnum,
+--        col = col,
+--        text = text,
+--      })
+--    end
+--  end
+--  return out
+--end
+--
+--local function make_lines(entries)
+--  local lines = {}
+--  for i, e in ipairs(entries) do
+--    local where
+--    if e.kind == "global" then
+--      local path = (e.file ~= "" and vim.fn.fnamemodify(e.file, ":~")) or "?"
+--      where = ("%s:%d"):format(path, e.lnum)
+--    else
+--      local name = vim.fn.bufname(e.bufnr)
+--      where = ("%s:%d"):format(name == "" and "[No Name]" or name, e.lnum)
+--    end
+--    local preview = (e.text or ""):gsub("\t", "↹")
+--    lines[i] = ("%s │ %s │ %s"):format(e.mark, where, preview)
+--  end
+--  return lines
+--end
+--
+--function M.open()
+--  local buf = 0 -- current buffer
+--  local entries = {}
+--  vim.list_extend(entries, get_local_marks(buf))
+--  vim.list_extend(entries, get_global_marks())
+--
+--  -- create scratch buffer & floating window
+--  local listbuf = vim.api.nvim_create_buf(false, true)
+--  vim.api.nvim_buf_set_option(listbuf, "bufhidden", "wipe")
+--  vim.api.nvim_buf_set_option(listbuf, "filetype", "MarksManager")
+--
+--  local lines = make_lines(entries)
+--  if #lines == 0 then lines = { "No marks found (local a..z, global A..Z)" } end
+--  vim.api.nvim_buf_set_lines(listbuf, 0, -1, false, lines)
+--
+--  local width  = math.max(40, math.floor(vim.o.columns * 0.8))
+--  local height = math.max(3,  math.min(#lines, math.floor(vim.o.lines * 0.6)))
+--  local row    = math.floor((vim.o.lines - height) / 2)
+--  local col    = math.floor((vim.o.columns - width) / 2)
+--
+--  local win = vim.api.nvim_open_win(listbuf, true, {
+--    relative = "editor",
+--    row = row, col = col,
+--    width = width, height = height,
+--    border = "rounded",
+--  })
+--
+--  local function refresh()
+--    entries = {}
+--    vim.list_extend(entries, get_local_marks(0))
+--    vim.list_extend(entries, get_global_marks())
+--    vim.api.nvim_buf_set_lines(listbuf, 0, -1, false, make_lines(entries))
+--  end
+--
+--  -- Jump to mark: <CR>
+--  vim.keymap.set("n", "<CR>", function()
+--    local idx = vim.fn.line(".")
+--    local e = entries[idx]; if not e then return end
+--    if e.kind == "global" then
+--      if e.file ~= "" then vim.cmd.edit(vim.fn.fnameescape(e.file)) end
+--    else
+--      vim.api.nvim_set_current_buf(e.bufnr)
+--    end
+--    -- Neovim expects {lnum (1-based), col (0-based)}
+--    vim.api.nvim_win_set_cursor(0, { e.lnum, e.col })
+--    vim.api.nvim_win_close(win, true)
+--  end, { buffer = listbuf, nowait = true })
+--
+--  -- Delete mark under cursor: d
+--  vim.keymap.set("n", "d", function()
+--    local idx = vim.fn.line(".")
+--    local e = entries[idx]; if not e then return end
+--    vim.cmd(("delmarks %s"):format(e.mark))
+--    refresh()
+--  end, { buffer = listbuf, nowait = true })
+--
+--  -- Promote (set) a GLOBAL mark here: P
+--  -- Prompts for a letter (A..Z). If the entry is local, we jump there first, then set mark.
+--  vim.keymap.set("n", "P", function()
+--    local idx = vim.fn.line(".")
+--    local e = entries[idx]; if not e then return end
+--    local letter = vim.fn.input("Promote to global mark (A-Z): ")
+--    if not letter or letter == "" then return end
+--    letter = letter:sub(1,1):upper()
+--    if not letter:match("^[A-Z]$") then
+--      print("Not a valid global mark"); return
+--    end
+--    -- go to the position referenced by the entry
+--    if e.kind == "global" then
+--      if e.file ~= "" then vim.cmd.edit(vim.fn.fnameescape(e.file)) end
+--    else
+--      vim.api.nvim_set_current_buf(e.bufnr)
+--    end
+--    vim.api.nvim_win_set_cursor(0, { e.lnum, e.col })
+--    -- set the global mark at that spot
+--    vim.cmd.normal({ args = { "m" .. letter }, bang = true })
+--    print("Set global mark " .. letter)
+--    refresh()
+--  end, { buffer = listbuf, nowait = true })
+--
+--  -- Close: q / <Esc>
+--  for _, key in ipairs({ "q", "<Esc>" }) do
+--    vim.keymap.set("n", key, function() vim.api.nvim_win_close(win, true) end,
+--      { buffer = listbuf, nowait = true })
+--  end
+--end
+--
+--return M

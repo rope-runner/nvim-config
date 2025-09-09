@@ -11,7 +11,7 @@ null_ls.setup({
         null_ls.builtins.formatting.goimports_reviser,
         null_ls.builtins.formatting.golines,
         formatting.prettier.with({
-            filetypes = { "typescript", "typescriptreact", "javascript", "html", "css", "json", "yaml", "markdown" },
+            filetypes = { "typescript", "typescriptreact", "javascript", "html", "css", "json", "yaml", "markdown", "scss", "less" },
         }),
         formatting.eslint_d
     },

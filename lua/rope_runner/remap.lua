@@ -24,3 +24,5 @@ vim.keymap.set("n", "<leader>ti", ":AutoImport<CR>", { noremap = true, silent = 
 vim.keymap.set("n", "<leader>e", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setqflist, { desc = "Show diagnostics in quickfix" })
 vim.keymap.set("n", "<leader>l", vim.diagnostic.setloclist, { desc = "Show diagnostics in location list" })
+
+vim.opt.clipboard = "unnamedplus"
