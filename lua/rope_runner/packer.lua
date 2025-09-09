@@ -19,7 +19,7 @@ use 'neovim/nvim-lspconfig'
     --use 'hrsh7th/cmp-path'
     --use 'hrsh7th/cmp-buffer'
     --
-use({ 'saghen/blink.cmp' })
+    use({ 'saghen/blink.cmp', tag = "1.6" })
 
     use {
         'nvim-telescope/telescope.nvim', tag = '0.1.6',

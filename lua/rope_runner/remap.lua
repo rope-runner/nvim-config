@@ -25,4 +25,10 @@ vim.keymap.set("n", "<leader>e", vim.diagnostic.goto_next, { desc = "Go to next 
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setqflist, { desc = "Show diagnostics in quickfix" })
 vim.keymap.set("n", "<leader>l", vim.diagnostic.setloclist, { desc = "Show diagnostics in location list" })
 
+vim.keymap.set("n", "<leader>1", "<C-o>", { desc = "Jump back" })
+
+vim.keymap.set("n", "<leader>2", "<C-i>", { desc = "Jump forward" })
+
+vim.keymap.set("n", "<leader>`", "<cmd>Neogit<CR>", { desc = "Open Neogit" })
+
 vim.opt.clipboard = "unnamedplus"
