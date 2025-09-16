@@ -5,6 +5,8 @@ vim.keymap.set('n', '<leader>ps', function()
 	builtin.grep_string({ search = vim.fn.input("Grep > ") });
 end)
 
+vim.keymap.set('n', '<leader>]', builtin.live_grep, {})
+
 local function get_visual_selection()
   local save_reg = vim.fn.getreg("v")
   local save_type = vim.fn.getregtype("v")
