@@ -147,6 +147,15 @@ local on_attach = function(_, bufnr)
       trigger_sig()  -- unconditional
     end,
   })
+
+  if vim.bo[bufnr].filetype == "rust" then
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      buffer = bufnr,
+      callback = function()
+        vim.lsp.buf.format({ async = false })
+      end,
+    })
+  end
 end
 
 
@@ -218,6 +227,26 @@ if exists(bin('clangd')) then
   })
 end
 
+if exists(bin('rust-analyzer')) or vim.fn.executable('rust-analyzer') == 1 then
+  setup_if_present('rust_analyzer', {
+    cmd = { bin('rust-analyzer') },
+    settings = {
+      ["rust-analyzer"] = {
+        cargo = { allFeatures = true },
+        checkOnSave = { command = "clippy" },
+        inlayHints = {
+          enable = true,
+          typeHints = true,
+          parameterHints = true,
+          chainingHints = true,
+        },
+        completion = {
+          autoimport = { enable = true },
+        },
+      },
+    },
+  })
+end
 -- HTML / CSS / ESLint / Docker / Emmet
 if exists(bin('vscode-html-language-server')) then
   setup_if_present('html',  { cmd = { bin('vscode-html-language-server'),  '--stdio' } })
