@@ -30,3 +30,5 @@ vim.keymap.set({ "n", "v" }, "<leader>p8", function()
     end
   end
 end, { desc = "Grep word under cursor or visual selection" })
+
+vim.keymap.set("n", "<leader>fm", "<cmd>Telescope man_pages<CR>", { desc = "Find man pages" })

@@ -252,7 +252,14 @@ if exists(bin('vscode-html-language-server')) then
   setup_if_present('html',  { cmd = { bin('vscode-html-language-server'),  '--stdio' } })
 end
 if exists(bin('vscode-css-language-server')) then
-  setup_if_present('cssls', { cmd = { bin('vscode-css-language-server'),   '--stdio' } })
+  setup_if_present('cssls', {
+    cmd = { bin('vscode-css-language-server'), '--stdio' },
+    settings = {
+      css = { validate = true },
+      scss = { validate = true },
+      less = { validate = true },
+    },
+  })
 end
 if exists(bin('vscode-eslint-language-server')) then
   setup_if_present('eslint',{ cmd = { bin('vscode-eslint-language-server'), '--stdio' } })
